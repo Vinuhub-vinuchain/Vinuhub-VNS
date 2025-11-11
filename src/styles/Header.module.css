@@ -1,0 +1,58 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border-bottom: 1px solid #555555;
+}
+
+.logo a {
+  color: #ffffff;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav {
+  display: flex;
+  gap: 20px;
+}
+
+.nav a {
+  color: #d3d3d3;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.nav a:hover {
+  color: #ffffff;
+}
+
+.wallet {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wallet span {
+  color: #d3d3d3;
+  font-size: 0.9rem;
+}
+
+.wallet button {
+  background: linear-gradient(#ffffff, #e0e0e0);
+  color: #000000;
+  border: none;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: bold;
+}
+
+.status {
+  color: #d3d3d3;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}

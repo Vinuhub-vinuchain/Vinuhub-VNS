@@ -1,0 +1,32 @@
+.card {
+  background: rgba(51, 51, 51, 0.8);
+  border: 1px solid #555555;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.historyItem {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #555555;
+}
+
+.historyItem p {
+  color: #d3d3d3;
+  font-size: 0.9rem;
+  margin: 5px 0;
+}
+
+p {
+  color: #d3d3d3;
+  font-size: 0.9rem;
+}

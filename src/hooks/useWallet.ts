@@ -1,11 +1,11 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { ethers } from 'ethers';
-import VinuDomainABI from '@/types/abi/VinuDomain.json'; // ← Proper ABI import
+import VinuDomainABI from '../types/abi/VinuDomain.json';
 
 const CONTRACT_ADDRESS = '0x0fd5991e652277F0C906aEF17aBD37A4c2c484d1';
-const CHAIN_ID = 207; // ← Correct VinuChain Mainnet ID
+const CHAIN_ID = 207; // ← Correct VinuChain Mainnet
 
 interface WalletContextType {
   provider: ethers.providers.Web3Provider | null;
@@ -35,31 +35,31 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [status, setStatus] = useState<string>('');
 
   const connectWallet = async () => {
-    if (typeof window.ethereum === 'undefined') {
-      setStatus('Please install MetaMask!');
+    if (!window.ethereum) {
+      setStatus('Install MetaMask!');
       return;
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      await provider.send('eth_requestAccounts', []);
+      const prov = new ethers.providers.Web3Provider(window.ethereum);
+      await prov.send('eth_requestAccounts', []);
 
-      const network = await provider.getNetwork();
+      const network = await prov.getNetwork();
       if (network.chainId !== CHAIN_ID) {
         try {
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${CHAIN_ID.toString(16)}` }],
+            params: [{ chainId: '0xcf' }], // 207 in hex
           });
-        } catch (switchError: any) {
-          if (switchError.code === 4902) {
+        } catch (e: any) {
+          if (e.code === 4902) {
             await window.ethereum.request({
               method: 'wallet_addEthereumChain',
               params: [{
-                chainId: `0x${CHAIN_ID.toString(16)}`,
-                chainName: 'VinuChain Mainnet',
+                chainId: '0xcf',
+                chainName: 'VinuChain',
                 rpcUrls: ['https://rpc.vinuchain.org'],
-                nativeCurrency: { name: 'VinuChain', symbol: 'VC', decimals: 18 },
+                nativeCurrency: { name: 'VC', symbol: 'VC', decimals: 18 },
                 blockExplorerUrls: ['https://explorer.vinuchain.org'],
               }],
             });
@@ -67,17 +67,17 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
 
-      const signer = provider.getSigner();
-      const address = await signer.getAddress();
-      const contract = new ethers.Contract(CONTRACT_ADDRESS, VinuDomainABI, signer);
+      const sig = prov.getSigner();
+      const addr = await sig.getAddress();
+      const cont = new ethers.Contract(CONTRACT_ADDRESS, VinuDomainABI, sig);
 
-      setProvider(provider);
-      setSigner(signer);
-      setContract(contract);
-      setUserAddress(address);
-      setStatus(`Connected: ${address.slice(0, 6)}...${address.slice(-4)}`);
+      setProvider(prov);
+      setSigner(sig);
+      setContract(cont);
+      setUserAddress(addr);
+      setStatus(`Connected: ${addr.slice(0,6)}...${addr.slice(-4)}`);
     } catch (err: any) {
-      setStatus(err.message || 'Connection failed');
+      setStatus(err.message || 'Failed to connect');
     }
   };
 
@@ -91,13 +91,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <WalletContext.Provider value={{
-      provider,
-      signer,
-      contract,
-      userAddress,
-      connectWallet,
-      disconnectWallet,
-      status,
+      provider, signer, contract, userAddress,
+      connectWallet, disconnectWallet, status
     }}>
       {children}
     </WalletContext.Provider>

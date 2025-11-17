@@ -5,7 +5,7 @@ import { ethers } from 'ethers';
 import VinuDomainABI from '../types/abi/VinuDomain.json';
 
 const CONTRACT_ADDRESS = '0x0fd5991e652277F0C906aEF17aBD37A4c2c484d1';
-const CHAIN_ID = 207; // ← Correct VinuChain Mainnet
+const CHAIN_ID = 207;
 
 interface WalletContextType {
   provider: ethers.providers.Web3Provider | null;
@@ -36,7 +36,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
   const connectWallet = async () => {
     if (!window.ethereum) {
-      setStatus('Install MetaMask!');
+      setStatus('Please install MetaMask');
       return;
     }
 
@@ -46,25 +46,10 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
 
       const network = await prov.getNetwork();
       if (network.chainId !== CHAIN_ID) {
-        try {
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: '0xcf' }], // 207 in hex
-          });
-        } catch (e: any) {
-          if (e.code === 4902) {
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{
-                chainId: '0xcf',
-                chainName: 'VinuChain',
-                rpcUrls: ['https://rpc.vinuchain.org'],
-                nativeCurrency: { name: 'VC', symbol: 'VC', decimals: 18 },
-                blockExplorerUrls: ['https://explorer.vinuchain.org'],
-              }],
-            });
-          }
-        }
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: '0xcf' }],
+        });
       }
 
       const sig = prov.getSigner();
@@ -77,7 +62,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       setUserAddress(addr);
       setStatus(`Connected: ${addr.slice(0,6)}...${addr.slice(-4)}`);
     } catch (err: any) {
-      setStatus(err.message || 'Failed to connect');
+      setStatus(err.message || 'Connection failed');
     }
   };
 
@@ -86,7 +71,7 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
     setSigner(null);
     setContract(null);
     setUserAddress(null);
-    setStatus('Disconnected');
+    setStatus('');
   };
 
   return (

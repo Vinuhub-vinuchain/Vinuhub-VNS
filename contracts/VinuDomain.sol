@@ -1,3 +1,4 @@
+// contracts/VinuDomain.sol
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
@@ -25,34 +26,28 @@ contract VinuDomain is ERC721 {
 
     function register(string memory name) public payable {
         require(bytes(name).length > 0, "Empty name");
-        require(nameToTokenId[name] == 0 || nameToExpiry[name] < block.timestamp, "Domain taken");
+        require(nameToTokenId[name] == 0 || nameToExpiry[name] < block.timestamp, "Taken");
 
         uint256 fee = bytes(name).length <= 5 ? REGISTRATION_FEE_SHORT : REGISTRATION_FEE_LONG;
         require(msg.value >= fee, "Insufficient fee");
 
         _tokenIds.increment();
-        uint256 newTokenId = _tokenIds.current();
-        _mint(msg.sender, newTokenId);
+        uint256 id = _tokenIds.current();
+        _mint(msg.sender, id);
 
-        nameToTokenId[name] = newTokenId;
+        nameToTokenId[name] = id;
         nameToExpiry[name] = block.timestamp + REGISTRATION_PERIOD;
+        emit DomainRegistered(id, name, msg.sender);
 
-        emit DomainRegistered(newTokenId, name, msg.sender);
-
-        if (msg.value > fee) {
-            payable(msg.sender).transfer(msg.value - fee);
-        }
+        if (msg.value > fee) payable(msg.sender).transfer(msg.value - fee);
     }
 
     function renew(string memory name) public payable {
-        require(nameToTokenId[name] != 0, "Domain not registered");
+        require(nameToTokenId[name] != 0, "Not registered");
         uint256 fee = bytes(name).length <= 5 ? REGISTRATION_FEE_SHORT : REGISTRATION_FEE_LONG;
         require(msg.value >= fee, "Insufficient fee");
         nameToExpiry[name] = block.timestamp + REGISTRATION_PERIOD;
-
-        if (msg.value > fee) {
-            payable(msg.sender).transfer(msg.value - fee);
-        }
+        if (msg.value > fee) payable(msg.sender).transfer(msg.value - fee);
     }
 
     function setAddress(string memory name, address newAddr) public {
@@ -70,7 +65,6 @@ contract VinuDomain is ERC721 {
     function listForSale(string memory name, uint256 price) public {
         uint256 tokenId = nameToTokenId[name];
         require(ownerOf(tokenId) == msg.sender, "Not owner");
-        require(price > 0, "Invalid price");
         tokenIdToPrice[tokenId] = price;
         emit DomainListed(tokenId, price);
     }
@@ -79,22 +73,22 @@ contract VinuDomain is ERC721 {
         uint256 tokenId = nameToTokenId[name];
         uint256 price = tokenIdToPrice[tokenId];
         require(price > 0, "Not for sale");
-        require(msg.value >= price, "Insufficient payment");
+        require(msg.value >= price, "Low payment");
 
         address seller = ownerOf(tokenId);
         _transfer(seller, msg.sender, tokenId);
         payable(seller).transfer(msg.value);
         tokenIdToPrice[tokenId] = 0;
-
         emit DomainSold(tokenId, msg.sender, msg.value);
     }
 
     function transferWithDomain(string memory domain, uint256 amount) public payable {
         string memory name = _stripVc(domain);
         uint256 tokenId = nameToTokenId[name];
+
         require(tokenId != 0, "Domain does not exist");
-        require(ownerOf(tokenId) == msg.sender, "You do not own this domain");
-        require(msg.value >= amount, "Not enough VC");
+        require(ownerOf(tokenId) == msg.sender, "You do not own this domain"); // OWNERSHIP CHECK
+        require(msg.value >= amount, "Insufficient VC sent");
 
         (bool sent, ) = msg.sender.call{value: amount}("");
         require(sent, "Transfer failed");
@@ -107,23 +101,13 @@ contract VinuDomain is ERC721 {
         if (b.length < 4) return domain;
         if (b[b.length-3] == "." && b[b.length-2] == "v" && b[b.length-1] == "c") {
             bytes memory trimmed = new bytes(b.length - 3);
-            for (uint i = 0; i < b.length - 3; i++) {
-                trimmed[i] = b[i];
-            }
+            for (uint i = 0; i < b.length - 3; i++) trimmed[i] = b[i];
             return string(trimmed);
         }
         return domain;
     }
 
-    function nameToExpiry(string memory name) public view returns (uint256) {
-        return nameToExpiry[name];
-    }
-
-    function tokenIdToPrice(uint256 tokenId) public view returns (uint256) {
-        return tokenIdToPrice[tokenId];
-    }
-
-    function nameToContent(string memory name) public view returns (string memory) {
-        return nameToContent[name];
-    }
+    function nameToExpiry(string memory name) public view returns (uint256) { return nameToExpiry[name]; }
+    function tokenIdToPrice(uint256 tokenId) public view returns (uint256) { return tokenIdToPrice[tokenId]; }
+    function nameToContent(string memory name) public view returns (string memory) { return nameToContent[name]; }
 }

@@ -1,8 +1,9 @@
+// src/hooks/useWallet.ts
 'use client';
 
 import { createContext, useContext, useState } from 'react';
 import { ethers } from 'ethers';
-import VinuDomainABI from '../types/abi/VinuDomain.json';
+import VinuDomainABI from '../types/abi';
 
 const CONTRACT_ADDRESS = '0x0fd5991e652277F0C906aEF17aBD37A4c2c484d1';
 const CHAIN_ID = 207;
@@ -27,7 +28,7 @@ const WalletContext = createContext<WalletContextType>({
   status: '',
 });
 
-export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
+export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [provider, setProvider] = useState<ethers.providers.Web3Provider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
   const [contract, setContract] = useState<ethers.Contract | null>(null);
@@ -35,8 +36,8 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
   const [status, setStatus] = useState<string>('');
 
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      setStatus('Please install MetaMask');
+    if (typeof window === 'undefined' || !window.ethereum) {
+      setStatus('MetaMask not detected');
       return;
     }
 
@@ -60,9 +61,9 @@ export const WalletProvider = ({ children }: { children: React.ReactNode }) => {
       setSigner(sig);
       setContract(cont);
       setUserAddress(addr);
-      setStatus(`Connected: ${addr.slice(0,6)}...${addr.slice(-4)}`);
+      setStatus(`Connected: ${addr.slice(0, 6)}...${addr.slice(-4)}`);
     } catch (err: any) {
-      setStatus(err.message || 'Connection failed');
+      setStatus(err?.message || 'Connection failed');
     }
   };
 

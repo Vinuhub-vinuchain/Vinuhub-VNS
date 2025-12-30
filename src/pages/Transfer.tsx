@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { parseError } from '../utils/helpers';
-import styles from '../styles/Transfer.module.css';
+import  '../styles/Transfer.module.css';
 import { ethers } from 'ethers';
 
 const Transfer: React.FC = () => {
@@ -51,9 +51,9 @@ const Transfer: React.FC = () => {
   };
 
   return (
-    <section className={styles.card}>
+    <section className='card'>
       <h2>Transfer</h2>
-      <div className={styles.inputGroup}>
+      <div className='inputGroup'>
         <label htmlFor="domainInput">Domain Name</label>
         <input
           id="domainInput"
@@ -63,7 +63,7 @@ const Transfer: React.FC = () => {
           placeholder="Enter name (e.g., example)"
         />
       </div>
-      <div className={styles.inputGroup}>
+      <div className='inputGroup'>
         <h3>Transfer Tokens</h3>
         <label htmlFor="amountInput">Amount (VC)</label>
         <input
@@ -77,7 +77,7 @@ const Transfer: React.FC = () => {
           Transfer Tokens
         </button>
       </div>
-      <div className={styles.inputGroup}>
+      <div className='inputGroup'>
         <h3>Transfer Domain Ownership</h3>
         <label htmlFor="addressInput">New Address</label>
         <input

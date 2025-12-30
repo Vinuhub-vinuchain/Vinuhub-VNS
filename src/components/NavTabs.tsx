@@ -1,7 +1,4 @@
-'use client';
-
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { NavLink } from 'react-router-dom';
 
 const tabs = [
   { name: 'Home', href: '/' },
@@ -14,22 +11,22 @@ const tabs = [
 ];
 
 export default function NavTabs() {
-  const pathname = usePathname();
-
   return (
     <nav className="flex space-x-8 border-b border-gray-800">
       {tabs.map((tab) => (
-        <Link
+        <NavLink
           key={tab.href}
-          href={tab.href}
-          className={`py-4 px-2 text-sm font-medium transition-colors ${
-            pathname === tab.href
-              ? 'text-white border-b-2 border-white'
-              : 'text-gray-400 hover:text-white'
-          }`}
+          to={tab.href}
+          className={({ isActive }) =>
+            `py-4 px-2 text-sm font-medium transition-colors ${
+              isActive
+                ? 'text-white border-b-2 border-white'
+                : 'text-gray-400 hover:text-white'
+            }`
+          }
         >
           {tab.name}
-        </Link>
+        </NavLink>
       ))}
     </nav>
   );

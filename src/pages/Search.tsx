@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { parseError } from '../utils/helpers';
-import styles from '../styles/Search.module.css';
+import  '../styles/Search.module.css';
 
 const Search: React.FC = () => {
   const { contract, userAddress, status } = useWallet();
@@ -29,9 +29,9 @@ const Search: React.FC = () => {
   };
 
   return (
-    <section className={styles.card}>
+    <section className='card'>
       <h2>Search Domains</h2>
-      <div className={styles.inputGroup}>
+      <div className='inputGroup'>
         <label htmlFor="searchInput">Domain Name</label>
         <input
           id="searchInput"

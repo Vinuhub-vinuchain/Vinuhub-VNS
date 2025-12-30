@@ -1,24 +1,34 @@
 import React, { useEffect, useState } from 'react';
 import { useWallet } from '../hooks/useWallet';
-import { parseError, getRegistrationFee } from '../utils/helpers';
-import { RegisteredDomain } from '../types';
-import styles from '../styles/Marketplace.module.css';
+import { parseError } from '../utils/helpers';
 import { ethers } from 'ethers';
+
+interface MarketDomain {
+  tokenId: string;
+  name: string;
+  owner: string;
+  blockNumber: number;
+  price: string;
+  expiry?: number;
+}
 
 const Marketplace: React.FC = () => {
   const { contract, userAddress, status } = useWallet();
-  const [domains, setDomains] = useState<RegisteredDomain[]>([]);
+  const [domains, setDomains] = useState<MarketDomain[]>([]);
   const [listDomain, setListDomain] = useState('');
   const [listPrice, setListPrice] = useState('');
   const [marketStatus, setMarketStatus] = useState('');
 
+  // Load all domains listed for sale
   const loadDomains = async () => {
     if (!contract) return;
     try {
       const filter = contract.filters.DomainRegistered(null, null, null);
       const events = await contract.queryFilter(filter, 0, 'latest');
-      const domainList = await Promise.all(
+
+      const domainListWithNulls = await Promise.all(
         events.map(async (event) => {
+          if (!event.args) return null; // skip events without args
           const tokenId = event.args.tokenId.toString();
           const price = await contract.tokenIdToPrice(tokenId);
           return {
@@ -27,15 +37,21 @@ const Marketplace: React.FC = () => {
             owner: event.args.owner,
             blockNumber: event.blockNumber,
             price: price.toString(),
-          };
-        }),
+          } as MarketDomain;
+        })
       );
-      setDomains(domainList.filter((d) => ethers.BigNumber.from(d.price).gt(0)));
+
+      const domainList: MarketDomain[] = domainListWithNulls
+        .filter((d): d is MarketDomain => d !== null)
+        .filter((d) => ethers.BigNumber.from(d.price).gt(0));
+
+      setDomains(domainList);
     } catch (error) {
       setMarketStatus(`Error loading domains: ${parseError(error)}`);
     }
   };
 
+  // List a domain for sale
   const handleList = async () => {
     if (!contract || !userAddress) {
       setMarketStatus('Wallet not connected');
@@ -51,12 +67,15 @@ const Marketplace: React.FC = () => {
       const tx = await contract.listForSale(name, weiPrice);
       await tx.wait();
       setMarketStatus(`Listed ${name}.vc for ${listPrice} VC successfully! Tx: ${tx.hash}`);
+      setListDomain('');
+      setListPrice('');
       loadDomains();
     } catch (error) {
       setMarketStatus(`Listing failed: ${parseError(error)}`);
     }
   };
 
+  // Buy a domain
   const handleBuy = async (name: string) => {
     if (!contract || !userAddress) {
       setMarketStatus('Wallet not connected');
@@ -80,35 +99,37 @@ const Marketplace: React.FC = () => {
   }, [contract]);
 
   return (
-    <section className={styles.card}>
+    <section className='card'>
       <h2>Marketplace</h2>
-      <div className={styles.inputGroup}>
+
+      <div className='inputGroup'>
         <h3>List a Domain</h3>
-        <label htmlFor="listDomainInput">Domain Name</label>
+        <label htmlFor='listDomainInput'>Domain Name</label>
         <input
-          id="listDomainInput"
-          type="text"
+          id='listDomainInput'
+          type='text'
           value={listDomain}
           onChange={(e) => setListDomain(e.target.value)}
-          placeholder="Enter name (e.g., example)"
+          placeholder='Enter name (e.g., example)'
         />
-        <label htmlFor="listPriceInput">Price (VC)</label>
+        <label htmlFor='listPriceInput'>Price (VC)</label>
         <input
-          id="listPriceInput"
-          type="text"
+          id='listPriceInput'
+          type='text'
           value={listPrice}
           onChange={(e) => setListPrice(e.target.value)}
-          placeholder="Enter price (e.g., 500)"
+          placeholder='Enter price (e.g., 500)'
         />
         <button onClick={handleList} disabled={!listDomain || !listPrice || !contract}>
           List for Sale
         </button>
       </div>
+
       <h3>Domains for Sale</h3>
-      <div className={styles.cardGrid}>
+      <div className='cardGrid'>
         {domains.length ? (
           domains.map((domain) => (
-            <div key={domain.tokenId} className={styles.domainItem}>
+            <div key={domain.tokenId} className='domainItem'>
               <p>{domain.name}</p>
               <p>Price: {ethers.utils.formatEther(domain.price)} VC</p>
               <p>Owner: {`${domain.owner.slice(0, 6)}...${domain.owner.slice(-4)}`}</p>
@@ -124,6 +145,7 @@ const Marketplace: React.FC = () => {
           <p>No domains listed for sale</p>
         )}
       </div>
+
       <p>{marketStatus || status}</p>
     </section>
   );

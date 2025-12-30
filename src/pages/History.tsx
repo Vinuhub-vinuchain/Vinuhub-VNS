@@ -1,26 +1,39 @@
 import React, { useEffect, useState } from 'react';
+import { ethers, Event } from 'ethers';
 import { useWallet } from '../hooks/useWallet';
 import { RegisteredDomain } from '../types';
 import { parseError } from '../utils/helpers';
-import styles from '../styles/History.module.css';
-import { ethers } from 'ethers';
+
+interface HistoryEvent extends Event {
+  date: string;
+}
 
 const History: React.FC = () => {
   const { contract, userAddress, provider, status } = useWallet();
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<HistoryEvent[]>([]);
   const [registeredDomains, setRegisteredDomains] = useState<RegisteredDomain[]>([]);
 
   const loadRegisteredDomains = async () => {
     if (!contract) return;
+
     try {
       const filter = contract.filters.DomainRegistered(null, null, null);
       const events = await contract.queryFilter(filter, 0, 'latest');
-      const domains = events.map((event) => ({
-        tokenId: event.args.tokenId.toString(),
-        name: event.args.name + '.vc',
-        owner: event.args.owner,
-        blockNumber: event.blockNumber,
-      }));
+
+      const domains: RegisteredDomain[] = [];
+
+      for (const event of events) {
+        if (!event.args) continue;
+
+        domains.push({
+          tokenId: event.args.tokenId.toString(),
+          name: `${event.args.name}.vc`,
+          owner: event.args.owner,
+          blockNumber: event.blockNumber,
+          expiry: 0, // fallback for missing expiry; adjust if needed
+        });
+      }
+
       setRegisteredDomains(domains);
     } catch (error) {
       console.error('Load registered domains error:', parseError(error));
@@ -32,35 +45,37 @@ const History: React.FC = () => {
       setHistory([]);
       return;
     }
+
     try {
       const filters = [
         contract.filters.DomainRegistered(null, null, null),
         contract.filters.DomainListed(null),
         contract.filters.DomainSold(null, userAddress),
-        contract.filters.Transfer(null, userAddress),
-        contract.filters.Transfer(userAddress, null),
       ];
-      const events = (await Promise.all(filters.map((f) => contract.queryFilter(f, 0, 'latest'))))
-        .flat()
-        .filter((event) => {
-          if (event.event === 'DomainRegistered') {
-            const domainEntry = registeredDomains.find((d) => d.tokenId === event.args.tokenId.toString());
-            return domainEntry && domainEntry.owner.toLowerCase() === userAddress.toLowerCase();
-          }
-          return true;
-        })
+
+      const eventsRaw = (
+        await Promise.all(filters.map((f) => contract.queryFilter(f, 0, 'latest')))
+      ).flat();
+
+      const events = eventsRaw
+        .filter((event) => event.args !== undefined)
         .sort((a, b) => b.blockNumber - a.blockNumber)
         .slice(0, 20);
-      const historyWithDates = await Promise.all(
-        events.map(async (event) => {
-          const block = await provider.getBlock(event.blockNumber);
-          return { ...event, date: new Date(block.timestamp * 1000).toLocaleString() };
-        }),
-      );
-      setHistory(historyWithDates);
+
+      const eventsWithDates: HistoryEvent[] = [];
+
+      for (const event of events) {
+        const block = await provider.getBlock(event.blockNumber);
+        eventsWithDates.push({
+          ...event,
+          date: new Date(block.timestamp * 1000).toLocaleString(),
+        });
+      }
+
+      setHistory(eventsWithDates);
     } catch (error) {
-      setHistory([]);
       console.error('History load error:', parseError(error));
+      setHistory([]);
     }
   };
 
@@ -75,31 +90,46 @@ const History: React.FC = () => {
   }, [contract, userAddress, registeredDomains]);
 
   return (
-    <section className={styles.card}>
+    <section className="card">
       <h2>Transaction History</h2>
-      <div className={styles.cardGrid}>
-        {history.length ? (
+      <div className="cardGrid">
+        {history.length > 0 ? (
           history.map((event, index) => {
-            const domainEntry = registeredDomains.find((d) => d.tokenId === event.args.tokenId.toString());
-            const name = domainEntry ? domainEntry.name : `domain${event.args.tokenId.toString().slice(0, 8)}.vc`;
+            if (!event.args) return null;
+
+            const domainEntry = registeredDomains.find(
+  (d) => event.args && d.tokenId === event.args.tokenId.toString()
+);
+
+
+            const name = domainEntry?.name ?? `domain${event.args.tokenId?.toString().slice(0, 6)}.vc`;
+
             let details = '';
-            if (event.event === 'DomainRegistered') {
-              details = `Registered ${name} by ${event.args.owner.slice(0, 6)}...${event.args.owner.slice(-4)}`;
-            } else if (event.event === 'DomainListed') {
-              details = `Listed ${name} for ${ethers.utils.formatEther(event.args.price)} VC`;
-            } else if (event.event === 'DomainSold') {
-              details = `Sold ${name} to ${event.args.buyer.slice(0, 6)}...${event.args.buyer.slice(-4)} for ${ethers.utils.formatEther(event.args.price)} VC`;
-            } else if (event.event === 'Transfer') {
-              details = `Transferred ${name} from ${event.args.from.slice(0, 6)}...${event.args.from.slice(-4)} to ${event.args.to.slice(0, 6)}...${event.args.to.slice(-4)}`;
+
+            switch (event.event) {
+              case 'DomainRegistered':
+                details = `Registered ${name} by ${event.args.owner.slice(0, 6)}...${event.args.owner.slice(-4)}`;
+                break;
+              case 'DomainListed':
+                details = `Listed ${name} for ${ethers.utils.formatEther(event.args.price)} VC`;
+                break;
+              case 'DomainSold':
+                details = `Sold ${name} to ${event.args.buyer.slice(0, 6)}...${event.args.buyer.slice(-4)} for ${ethers.utils.formatEther(event.args.price)} VC`;
+                break;
+              default:
+                details = event.event ?? 'unknown event';
             }
+
             return (
-              <div key={index} className={styles.historyItem}>
-                <p>{event.date}: {details}</p>
+              <div key={index} className="historyItem">
+                <p>
+                  {event.date}: {details}
+                </p>
               </div>
             );
           })
         ) : (
-          <p className={styles.historyItem}>{status || 'No recent transactions'}</p>
+          <p className="historyItem">{status || 'No recent transactions'}</p>
         )}
       </div>
     </section>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { getRegistrationFee, parseError } from '../utils/helpers';
-import styles from '../styles/Register.module.css';
+import  '../styles/Register.module.css';
 import { ethers } from 'ethers';
 
 const Register: React.FC = () => {
@@ -52,9 +52,9 @@ const Register: React.FC = () => {
   }, [domain]);
 
   return (
-    <section className={styles.card}>
+    <section className='card'>
       <h2>Register Now</h2>
-      <div className={styles.inputGroup}>
+      <div className='inputGroup'>
         <label htmlFor="domainInput">Domain Name</label>
         <input
           id="domainInput"

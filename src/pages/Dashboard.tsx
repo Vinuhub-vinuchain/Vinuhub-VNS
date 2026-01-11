@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 'use client';
 
 import React, { useState, useEffect } from 'react';

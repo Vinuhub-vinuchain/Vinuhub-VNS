@@ -1,108 +1,41 @@
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #000000;
-            padding: 10px 20px;
-            border-bottom: 1px solid #D3D3D3;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .logo img {
-            height: 40px;
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-        .logo img:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
-        }
-        nav {
-            display: flex;
-            align-items: center;
-        }
-        nav a {
-            color: #FFFFFF;
-            text-decoration: none;
-            margin: 0 10px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 0.9rem;
-            transition: color 0.3s;
-        }
-        nav a:hover {
-            color: #A9A9A9;
-        }
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .hamburger {
-            display: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #FFFFFF;
-        }
-        button {
-            background: linear-gradient(#ffffff, #e0e0e0);
-            color: #000000;
-            border: none;
-            padding: 8px 16px;
-            cursor: pointer;
-            border-radius: 8px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 0.85rem;
-            font-weight: bold;
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            min-height: 44px;
-        }
-        button:hover {
-            background: linear-gradient(#e0e0e0, #c0c0c0);
-            transform: scale(1.05);
-        }
-        #connectWallet, #disconnectWallet {
-            padding: 12px 20px;
-            font-size: 16px;
-        }
-        #disconnectWallet {
-            background: linear-gradient(#ff6666, #cc3333);
-        }
-        #disconnectWallet:hover {
-            background: linear-gradient(#cc3333, #992222);
-        }
-        input, select {
-            background: #000000;
-            color: #FFFFFF;
-            border: 1px solid #D3D3D3;
-            padding: 10px;
-            border-radius: 8px;
-            font-family: 'Roboto', sans-serif;
-            font-size: 0.9rem;
-            transition: border-color 0.3s, box-shadow 0.3s;
-            width: 100%;
-            box-sizing: border-box;
-            min-height: 44px;
-        }
-        input:focus, select:focus {
-            border-color: #A9A9A9;
-            box-shadow: 0 0 5px rgba(169, 169, 169, 0.5);
-            outline: none;
-        }
-        #hero {
-            text-align: center;
-            background: linear-gradient(to bottom, #000000, #FFFFFF10);
-            padding: 30px 15px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
-        }
-        #hero h2 {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 2rem;
-            margin: 0;
-        }
-        #hero p {
-            font-size: 1rem;
-            color: #D3D3D3;
-        }
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #000000;
+  padding: 10px 20px;
+  border-bottom: 1px solid #D3D3D3;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo img {
+  height: 40px;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+}
+
+nav a {
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.headerControls {
+  display: flex;
+  gap: 10px;
+}
+
+.hamburger {
+  display: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .hamburger { display: block; }
+  nav { display: none; flex-direction: column; }
+  nav.active { display: flex; }
+}

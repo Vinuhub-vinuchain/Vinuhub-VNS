@@ -13,10 +13,14 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     const load = async () => {
-      if (!contract || !userAddress) return;
+      if (!contract || !userAddress) {
+        setError('Connect wallet to view domains');
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
-        // Safe: only use indexed params
+        // Safe: only indexed params
         const transfersTo = await contract.queryFilter(contract.filters.Transfer(null, userAddress));
         const tokenIds = new Set(transfersTo.map((t: any) => t.args.tokenId.toString()));
 
@@ -24,16 +28,15 @@ const Dashboard: React.FC = () => {
         for (const id of tokenIds) {
           const owner = await contract.ownerOf(id);
           if (owner.toLowerCase() === userAddress.toLowerCase()) {
-            owned.push({ tokenId: id });
+            owned.push(id);
           }
         }
 
         const domainData = await Promise.all(
-          owned.map(async ({ tokenId }: any) => {
-            // Get name from events (safe)
-            const registered = await contract.queryFilter(contract.filters.DomainRegistered(tokenId));
-            const nameEvent = registered[0];
-            const name = nameEvent ? nameEvent.args.name + '.vc' : `Domain #${tokenId}`;
+          owned.map(async (tokenId: string) => {
+            const events = await contract.queryFilter(contract.filters.DomainRegistered(tokenId));
+            const regEvent = events[0];
+            const name = regEvent ? regEvent.args.name + '.vc' : `Domain #${tokenId}`;
             const expiry = await contract.nameToExpiry(name.replace('.vc', ''));
             return { name, expiry: expiry.toNumber(), tokenId };
           })

@@ -1,8 +1,9 @@
+// src/App.tsx
 'use client';
 
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Header from './components/Header';
+import Footer from './components/Footer';
 import Home from './pages/Home';
 import Search from './pages/Search';
 import Register from './pages/Register';
@@ -11,14 +12,14 @@ import Marketplace from './pages/Marketplace';
 import Dashboard from './pages/Dashboard';
 import History from './pages/History';
 import { WalletProvider } from './hooks/useWallet';
-import './styles/App.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-const App: React.FC = () => {
+export default function App() {
   return (
     <WalletProvider>
       <Router>
-        <div className="container">
-          <Header />
+        <Header />
+        <main className="container">
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
@@ -28,18 +29,9 @@ const App: React.FC = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/history" element={<History />} />
           </Routes>
-          <footer>
-            <p>Powered by VinuChain © 2025</p>
-            <div className="social">
-              <a href="https://t.me/Vinuhub" target="_blank" rel="noopener noreferrer">
-                <i className="fab fa-telegram"></i> Join Telegram
-              </a>
-            </div>
-          </footer>
-        </div>
+        </main>
+        <Footer />
       </Router>
     </WalletProvider>
   );
-};
-
-export default App;
+}

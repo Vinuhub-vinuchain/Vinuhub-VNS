@@ -4,53 +4,14 @@
   border-radius: 8px;
   padding: 20px;
   margin: 20px 0;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
 }
 
-.inputGroup {
+.input-group {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-bottom: 20px;
 }
 
-h3 {
-  color: #ffffff;
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-}
-
-label {
-  color: #d3d3d3;
-  font-size: 0.85rem;
-}
-
-input {
-  background: #000000;
-  color: #ffffff;
-  border: 1px solid #d3d3d3;
-  padding: 10px;
-  border-radius: 8px;
-  font-size: 0.9rem;
-}
-
-button {
-  background: linear-gradient(#ffffff, #e0e0e0);
-  color: #000000;
-  border: none;
-  padding: 8px 16px;
-  cursor: pointer;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-button:disabled {
-  background: #666666;
-  cursor: not-allowed;
-}
-
-p {
-  color: #d3d3d3;
-  font-size: 0.9rem;
+#erc20Group {
+  margin-top: 10px;
 }

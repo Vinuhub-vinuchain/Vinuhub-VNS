@@ -1,97 +1,58 @@
+// src/pages/Transfer.tsx
+'use client';
+
 import React, { useState } from 'react';
 import { useWallet } from '../hooks/useWallet';
 import { parseError } from '../utils/helpers';
-import  '../styles/Transfer.module.css';
 import { ethers } from 'ethers';
+import styles from '../styles/Transfer.module.css';
 
 const Transfer: React.FC = () => {
-  const { contract, userAddress, status } = useWallet();
+  const { contract, userAddress } = useWallet();
   const [domain, setDomain] = useState('');
   const [amount, setAmount] = useState('');
-  const [newAddress, setNewAddress] = useState('');
-  const [transferStatus, setTransferStatus] = useState('');
+  const [status, setStatus] = useState('');
 
-  const handleTokenTransfer = async () => {
-    if (!contract || !userAddress) {
-      setTransferStatus('Wallet not connected');
-      return;
-    }
-    const name = domain.replace('.vc', '');
-    if (!name || !amount) {
-      setTransferStatus('Please enter domain and amount');
-      return;
-    }
+  const handleTransfer = async () => {
+    if (!contract || !userAddress) return;
+    const name = domain.trim().replace('.vc', '');
+    if (!name || !amount) return;
+
     try {
       const weiAmount = ethers.utils.parseEther(amount);
       const tx = await contract.transferWithDomain(name, weiAmount, { value: weiAmount });
       await tx.wait();
-      setTransferStatus(`Transferred ${amount} VC to ${name}.vc successfully! Tx: ${tx.hash}`);
+      setStatus(`Transferred ${amount} VC to ${name}.vc!`);
     } catch (error) {
-      setTransferStatus(`Transfer failed: ${parseError(error)}`);
-    }
-  };
-
-  const handleDomainTransfer = async () => {
-    if (!contract || !userAddress) {
-      setTransferStatus('Wallet not connected');
-      return;
-    }
-    const name = domain.replace('.vc', '');
-    if (!name || !newAddress) {
-      setTransferStatus('Please enter domain and new address');
-      return;
-    }
-    try {
-      const tx = await contract.setAddress(name, newAddress);
-      await tx.wait();
-      setTransferStatus(`Transferred ${name}.vc to ${newAddress} successfully! Tx: ${tx.hash}`);
-    } catch (error) {
-      setTransferStatus(`Transfer failed: ${parseError(error)}`);
+      setStatus(`Failed: ${parseError(error)}`);
     }
   };
 
   return (
-    <section className='card'>
-      <h2>Transfer</h2>
-      <div className='inputGroup'>
-        <label htmlFor="domainInput">Domain Name</label>
+    <section id="transfer" className={styles.card}>
+      <h2>Transfer Tokens</h2>
+      <div className={styles.inputGroup}>
+        <label htmlFor="transferDomain">Recipient Domain</label>
         <input
-          id="domainInput"
+          id="transferDomain"
           type="text"
+          placeholder="e.g., example.vc"
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
-          placeholder="Enter name (e.g., example)"
         />
-      </div>
-      <div className='inputGroup'>
-        <h3>Transfer Tokens</h3>
-        <label htmlFor="amountInput">Amount (VC)</label>
+        <label htmlFor="transferAmount">Amount (VC)</label>
         <input
-          id="amountInput"
-          type="text"
+          id="transferAmount"
+          type="number"
+          placeholder="e.g., 10"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          placeholder="Enter amount (e.g., 1.5)"
         />
-        <button onClick={handleTokenTransfer} disabled={!domain || !amount || !contract}>
-          Transfer Tokens
+        <button onClick={handleTransfer} disabled={!domain || !amount || !contract}>
+          <i className="fas fa-paper-plane"></i> Transfer
         </button>
       </div>
-      <div className='inputGroup'>
-        <h3>Transfer Domain Ownership</h3>
-        <label htmlFor="addressInput">New Address</label>
-        <input
-          id="addressInput"
-          type="text"
-          value={newAddress}
-          onChange={(e) => setNewAddress(e.target.value)}
-          placeholder="Enter new address (e.g., 0x...)"
-        />
-        <button onClick={handleDomainTransfer} disabled={!domain || !newAddress || !contract}>
-          Transfer Domain
-        </button>
-      </div>
-      <p>{transferStatus || status}</p>
+      <p>{status}</p>
     </section>
   );
 };

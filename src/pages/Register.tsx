@@ -1,74 +1,60 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useWallet } from '../hooks/useWallet';
-import { getRegistrationFee, parseError } from '../utils/helpers';
-import  '../styles/Register.module.css';
+import { parseError } from '../utils/helpers';
 import { ethers } from 'ethers';
+import styles from '../styles/Register.module.css';
 
 const Register: React.FC = () => {
-  const { contract, provider, userAddress, status } = useWallet();
+  const { contract, userAddress } = useWallet();
   const [domain, setDomain] = useState('');
-  const [fee, setFee] = useState<string | null>(null);
-  const [registerStatus, setRegisterStatus] = useState('');
-
-  const updateFee = () => {
-    if (!domain) {
-      setFee(null);
-      return;
-    }
-    const calculatedFee = getRegistrationFee(domain.replace('.vc', ''));
-    setFee(ethers.utils.formatEther(calculatedFee));
-  };
-
-  const handleRegister = async () => {
-    if (!contract || !provider || !userAddress) {
-      setRegisterStatus('Wallet not connected');
-      return;
-    }
-    const name = domain.replace('.vc', '');
-    if (!name || !/^[a-zA-Z0-9]+$/.test(name)) {
-      setRegisterStatus('Invalid domain name (alphanumeric only)');
-      return;
-    }
-    try {
-      const fee = getRegistrationFee(name);
-      const balance = await provider.getBalance(userAddress);
-      const gasPrice = await provider.getGasPrice();
-      const gasEstimate = await contract.estimateGas.register(name, { value: fee });
-      const gasCost = gasPrice.mul(gasEstimate).mul(2); // Buffer for gas fluctuations
-      const totalCost = fee.add(gasCost);
-      if (balance.lt(totalCost)) {
-        throw new Error(`Insufficient VC balance. Need ${ethers.utils.formatEther(totalCost)} VC (Fee: ${ethers.utils.formatEther(fee)}, Gas: ${ethers.utils.formatEther(gasCost)}), have ${ethers.utils.formatEther(balance)} VC.`);
-      }
-      const tx = await contract.register(name, { value: fee, gasLimit: gasEstimate.mul(2) });
-      await tx.wait();
-      setRegisterStatus(`Domain ${name}.vc registered successfully! Tx: ${tx.hash}`);
-    } catch (error) {
-      setRegisterStatus(`Registration failed: ${parseError(error)}`);
-    }
-  };
+  const [fee, setFee] = useState<string>('Enter domain name');
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
-    updateFee();
+    const name = domain.trim().replace('.vc', '');
+    if (name) {
+      const calculatedFee = name.length <= 5 ? '20000' : '10000';
+      setFee(`Fee: ${calculatedFee} VC`);
+    } else {
+      setFee('Fee: Enter domain name');
+    }
   }, [domain]);
 
+  const handleRegister = async () => {
+    if (!contract || !userAddress) return;
+    const name = domain.trim().replace('.vc', '');
+    if (!name) return;
+
+    const feeValue = name.length <= 5 ? ethers.utils.parseEther('20000') : ethers.utils.parseEther('10000');
+    try {
+      const tx = await contract.register(name, { value: feeValue });
+      await tx.wait();
+      setStatus(`Registered ${name}.vc! Tx: ${tx.hash}`);
+    } catch (error) {
+      setStatus(`Failed: ${parseError(error)}`);
+    }
+  };
+
   return (
-    <section className='card'>
+    <section id="register" className={styles.card}>
       <h2>Register Now</h2>
-      <div className='inputGroup'>
+      <p>{fee}</p>
+      <div className={styles.inputGroup}>
         <label htmlFor="domainInput">Domain Name</label>
         <input
           id="domainInput"
           type="text"
+          placeholder="Enter name (e.g., example)"
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
-          placeholder="Enter name (e.g., example)"
         />
-        <p>Fee: {fee ? `${fee} VC` : 'Enter a domain name'}</p>
         <button onClick={handleRegister} disabled={!domain || !contract}>
-          Register .vc
+          <i className="fas fa-plus"></i> Register .vc
         </button>
       </div>
-      <p>{registerStatus || status}</p>
+      <p>{status}</p>
     </section>
   );
 };

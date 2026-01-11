@@ -1,50 +1,30 @@
 import React, { useState } from 'react';
-import { useWallet } from '../hooks/useWallet';
-import { parseError } from '../utils/helpers';
-import  '../styles/Search.module.css';
 
 const Search: React.FC = () => {
-  const { contract, userAddress, status } = useWallet();
   const [domain, setDomain] = useState('');
-  const [availability, setAvailability] = useState<string | null>(null);
 
-  const checkAvailability = async () => {
-    if (!contract) {
-      setAvailability('Wallet not connected');
-      return;
-    }
-    const name = domain.replace('.vc', '');
-    if (!name || !/^[a-zA-Z0-9]+$/.test(name)) {
-      setAvailability('Invalid domain name (alphanumeric only)');
-      return;
-    }
-    try {
-      const tokenId = await contract.nameToTokenId(name);
-      const expiry = await contract.nameToExpiry(name);
-      const isTaken = tokenId.toNumber() !== 0 && expiry.toNumber() > Math.floor(Date.now() / 1000);
-      setAvailability(isTaken ? `${name}.vc is taken` : `${name}.vc is available`);
-    } catch (error) {
-      setAvailability(`Error checking availability: ${parseError(error)}`);
-    }
+  const checkAvailability = () => {
+    // Your original checkAvail logic here
+    console.log('Checking:', domain);
   };
 
   return (
-    <section className='card'>
-      <h2>Search Domains</h2>
-      <div className='inputGroup'>
-        <label htmlFor="searchInput">Domain Name</label>
+    <section id="search" className="card">
+      <h2>Search .vc Domains</h2>
+      <div className="input-group">
+        <label htmlFor="domainInput">Domain Name</label>
         <input
-          id="searchInput"
           type="text"
+          id="domainInput"
+          placeholder="Enter name (e.g., example)"
           value={domain}
           onChange={(e) => setDomain(e.target.value)}
-          placeholder="Enter name (e.g., example)"
         />
-        <button onClick={checkAvailability} disabled={!domain || !contract}>
-          Check Availability
+        <button onClick={checkAvailability}>
+          <i className="fas fa-search"></i> Check
         </button>
       </div>
-      <p>{availability || status}</p>
+      <p id="availStatus"></p>
     </section>
   );
 };

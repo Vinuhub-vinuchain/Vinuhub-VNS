@@ -1,58 +1,108 @@
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.8);
-  border-bottom: 1px solid #555555;
-}
-
-.logo a {
-  color: #ffffff;
-  font-size: 1.5rem;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.nav {
-  display: flex;
-  gap: 20px;
-}
-
-.nav a {
-  color: #d3d3d3;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
-.nav a:hover {
-  color: #ffffff;
-}
-
-.wallet {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.wallet span {
-  color: #d3d3d3;
-  font-size: 0.9rem;
-}
-
-.wallet button {
-  background: linear-gradient(#ffffff, #e0e0e0);
-  color: #000000;
-  border: none;
-  padding: 8px 16px;
-  cursor: pointer;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: bold;
-}
-
-.status {
-  color: #d3d3d3;
-  font-size: 0.9rem;
-  margin-top: 10px;
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #000000;
+            padding: 10px 20px;
+            border-bottom: 1px solid #D3D3D3;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo img {
+            height: 40px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .logo img:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
+        }
+        nav {
+            display: flex;
+            align-items: center;
+        }
+        nav a {
+            color: #FFFFFF;
+            text-decoration: none;
+            margin: 0 10px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #A9A9A9;
+        }
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .hamburger {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #FFFFFF;
+        }
+        button {
+            background: linear-gradient(#ffffff, #e0e0e0);
+            color: #000000;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            min-height: 44px;
+        }
+        button:hover {
+            background: linear-gradient(#e0e0e0, #c0c0c0);
+            transform: scale(1.05);
+        }
+        #connectWallet, #disconnectWallet {
+            padding: 12px 20px;
+            font-size: 16px;
+        }
+        #disconnectWallet {
+            background: linear-gradient(#ff6666, #cc3333);
+        }
+        #disconnectWallet:hover {
+            background: linear-gradient(#cc3333, #992222);
+        }
+        input, select {
+            background: #000000;
+            color: #FFFFFF;
+            border: 1px solid #D3D3D3;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.9rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 44px;
+        }
+        input:focus, select:focus {
+            border-color: #A9A9A9;
+            box-shadow: 0 0 5px rgba(169, 169, 169, 0.5);
+            outline: none;
+        }
+        #hero {
+            text-align: center;
+            background: linear-gradient(to bottom, #000000, #FFFFFF10);
+            padding: 30px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+        #hero h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2rem;
+            margin: 0;
+        }
+        #hero p {
+            font-size: 1rem;
+            color: #D3D3D3;
+        }

@@ -22,15 +22,15 @@ const Dashboard: React.FC = () => {
       try {
         // Safe: only indexed params
         const transfersTo = await contract.queryFilter(contract.filters.Transfer(null, userAddress));
-        const tokenIds = new Set(transfersTo.map((t: any) => t.args.tokenId.toString()));
+       const tokenIds = Array.from(transfersTo.map((t: any) => t.args.tokenId.toString()));
 
-        const owned = [];
-        for (const id of tokenIds) {
-          const owner = await contract.ownerOf(id);
-          if (owner.toLowerCase() === userAddress.toLowerCase()) {
-            owned.push(id);
-          }
-        }
+const owned = [];
+for (const id of tokenIds) {
+  const owner = await contract.ownerOf(id);
+  if (owner.toLowerCase() === userAddress.toLowerCase()) {
+    owned.push(id);
+  }
+}
 
         const domainData = await Promise.all(
           owned.map(async (tokenId: string) => {

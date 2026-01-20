@@ -8,29 +8,32 @@ import styles from '../styles/Marketplace.module.css';
 
 const Marketplace: React.FC = () => {
   const { contract } = useWallet();
-  const [listed, setListed] = useState<any[]>([]);
+  const [listedDomains, setListedDomains] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState('');
 
   useEffect(() => {
     const load = async () => {
-      if (!contract) return;
       setLoading(true);
       try {
+        if (!contract) throw new Error('Connect wallet');
         const listedEvents = await contract.queryFilter(contract.filters.DomainListed());
         const soldEvents = await contract.queryFilter(contract.filters.DomainSold());
-        const soldIds = new Set(soldEvents.map((e: any) => e.args.tokenId.toString()));
+        const soldIds = new Set(soldEvents.map((e: any) => e?.args?.tokenId?.toString() || ''));
 
         const items = [];
         for (const e of listedEvents) {
-          const tokenId = e.args.tokenId.toString();
-          if (soldIds.has(tokenId)) continue;
+          const tokenId = e?.args?.tokenId?.toString() || '';
+          if (!tokenId || soldIds.has(tokenId)) continue;
           const price = await contract.tokenIdToPrice(tokenId);
           if (price.eq(0)) continue;
-          items.push({ tokenId, price: price.toString() });
+          const registered = await contract.queryFilter(contract.filters.DomainRegistered(tokenId));
+          const name = registered[0]?.args?.name 
+            ? registered[0].args.name + '.vc' 
+            : `Domain #${tokenId.slice(0, 8)}`;
+          items.push({ name, price: price.toString(), tokenId });
         }
-
-        setListed(items);
+        setListedDomains(items);
       } catch (e) {
         setStatus(`Failed: ${parseError(e)}`);
       } finally {
@@ -47,7 +50,7 @@ const Marketplace: React.FC = () => {
       const tx = await contract.buyDomain(tokenId, { value: price });
       await tx.wait();
       setStatus('Bought successfully!');
-      setListed((prev) => prev.filter((item) => item.tokenId !== tokenId));
+      setListedDomains((prev) => prev.filter((item) => item.tokenId !== tokenId));
     } catch (e) {
       setStatus(`Buy failed: ${parseError(e)}`);
     }
@@ -56,22 +59,30 @@ const Marketplace: React.FC = () => {
   if (loading) return <p>Loading marketplace...</p>;
 
   return (
-    <section className={styles.card}>
-      <h2>Marketplace</h2>
-      <div className={styles.cardGrid}>
-        {listed.length ? (
-          listed.map((item) => (
-            <div key={item.tokenId} className={styles.item}>
-              <p>Domain #{item.tokenId.slice(0, 6)}...</p>
-              <p>Price: {ethers.utils.formatEther(item.price)} VC</p>
-              <button onClick={() => handleBuy(item.tokenId)}>Buy</button>
-            </div>
-          ))
-        ) : (
-          <p>No domains listed</p>
-        )}
+    <section id="marketplace" className={styles.card}>
+      <h2>Marketplace - List or Buy Domains</h2>
+      <div className={styles.inputGroup}>
+        {/* List form - optional, add if needed */}
       </div>
-      <p>{status}</p>
+      <div id="marketList" style={{ marginTop: '20px' }}>
+        <h3>Available Domains</h3>
+        <div id="marketListItems" className={styles.cardGrid}>
+          {listedDomains.length ? (
+            listedDomains.map((item) => (
+              <div key={item.tokenId} className={styles.marketplaceItem}>
+                <h3>{item.name}</h3>
+                <p>Price: {ethers.utils.formatEther(item.price)} VC</p>
+                <button onClick={() => handleBuy(item.tokenId)}>
+                  <i className="fas fa-shopping-cart"></i> Buy
+                </button>
+              </div>
+            ))
+          ) : (
+            <p>No domains listed for sale</p>
+          )}
+        </div>
+      </div>
+      <p id="marketStatus">{status}</p>
     </section>
   );
 };

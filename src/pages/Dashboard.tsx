@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
       }
       setLoading(true);
       try {
-        // Safe: only use indexed Transfer events (no non-indexed parameters)
+        // Safe: only indexed Transfer events (no non-indexed parameters)
         const transfersTo = await contract.queryFilter(contract.filters.Transfer(null, userAddress));
 
         // Convert to array to avoid TS2802 Set iteration error
@@ -42,8 +42,13 @@ const Dashboard: React.FC = () => {
             const registeredEvents = await contract.queryFilter(
               contract.filters.DomainRegistered(tokenId)
             );
+
+            // Safe type guard + optional chaining (fixes TS18048)
             const regEvent = registeredEvents[0];
-            const name = regEvent ? regEvent.args.name + '.vc' : `Domain #${tokenId.slice(0, 8)}`;
+            const name = regEvent && regEvent.args && regEvent.args.name
+              ? regEvent.args.name + '.vc'
+              : `Domain #${tokenId.slice(0, 8)}`;
+
             const expiry = await contract.nameToExpiry(name.replace('.vc', ''));
             return { name, expiry: expiry.toNumber(), tokenId };
           })
